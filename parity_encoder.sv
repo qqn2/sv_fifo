@@ -1,6 +1,6 @@
 module parity_encoder #(
 	parameter EVEN_ODD= 0 , // EVEN(0) or ODD(1)
-	parameter SELECT_PARITY_BIT= 0, // MSB(0) or LSB(1)
+	parameter SELECT_PARITY_BIT= 0, // MSB(1) or LSB(0)
 	parameter DATA_WIDTH = 8
 ) (
 	input [DATA_WIDTH:0]			data_in,

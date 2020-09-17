@@ -14,6 +14,7 @@ module DUAL_PORT_RAM #(
 
 	localparam RAM_DEPTH = 1 << ADDR_WIDTH; 				 // RAM depth = 2^addr_width
 	logic      [DATA_RAM_WIDTH-1:0] 	memory[RAM_DEPTH-1:0];
+	logic 	   [DATA_RAM_WIDTH-1:0] 	data_1_out=0;
 
 
 //  ███╗   ███╗███████╗███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗    ██╗    ██╗██████╗ ██╗████████╗███████╗
@@ -23,7 +24,7 @@ module DUAL_PORT_RAM #(
 //  ██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║╚██████╔╝██║  ██║   ██║       ╚███╔███╔╝██║  ██║██║   ██║   ███████╗
 //  ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝        ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
 
-	always @(*) // TODO : Maybe i should use wildcard instead of this mess
+	always @(*)
 		begin
 			 if (chip_enable_0 && write_read_0)
 				memory[address_0] = data_0;
@@ -41,9 +42,15 @@ module DUAL_PORT_RAM #(
 	always @(address_1,chip_enable_1,write_read_1)
 		begin
 			if (chip_enable_1 && !write_read_1)
-				data_1 = memory[address_1];
-			else
-				data_1 = 0;
+				data_1_out = memory[address_1];
 		end
+
+
+	always_comb
+		begin
+			data_1 = data_1_out;
+		end
+
+
 
 endmodule : DUAL_PORT_RAM 

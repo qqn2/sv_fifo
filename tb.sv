@@ -5,7 +5,7 @@ module tb #(
 	parameter DATA_WIDTH = 32, // Self explanatory parameters
 	parameter FIFO_DEPTH = 4,
 	parameter EVEN_ODD   = 0,
-	parameter PARITY_BIT = 1
+	parameter PARITY_BIT = 0
 );
 
 	localparam integer 					HALF_T_CLK=5;
@@ -22,7 +22,7 @@ module tb #(
 	logic random_trigger_pvi = 0;							// random value to implement random duty cycle for push_vi
 	int i = 0;												// Numbers of elements that we pushed successfully
 	int j = 0;												// Numbers of elements that we popped successfully
-	logic[DATA_WIDTH:0]  value_ = 0;
+	logic[DATA_WIDTH:0]  value_ = 0;						// Variable I might use to input data
 	top
 		#(
 			.DATA_WIDTH(DATA_WIDTH),
@@ -44,158 +44,215 @@ module tb #(
 			);
 
 
+//  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+//  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+//  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+//  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+//  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
+//  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 
-	function Check_if_fifo_is_reset();
-		begin
-			if (DUT.fifo_i.count_read || DUT.fifo_i.count_write || DUT.fifo_i.count_fifo)
-				return 0;
-			else
-				return 1;
-		end
-	endfunction
+/*
+	Returns if fifo is reset or not 
+	1 : Reset successful
+	0 : Reset unsuccesful
+*/
+function Check_if_fifo_is_reset();
+	begin
+		if (DUT.fifo_i.count_read || DUT.fifo_i.count_write || DUT.fifo_i.count_fifo)
+			return 0;
+		else
+			return 1;
+	end
+endfunction
+
+/*
+	Returns if fifo was OVERFLOWN by comparing the numbers of successful pushs and pops by the tasks push_value and pop_value
+	NB : Pushing & popping values outside of the tasks will render this function useless
+	1 : Overflow happened
+	0 : Overflow did not happen
+*/
+function check_if_overflow();
+	begin
+		return ((i - j) > FIFO_DEPTH); //elements_in_fifo = i - j;
+	end
+endfunction : check_if_overflow
+
+/*
+	Returns if fifo was UNDERFLOWN by comparing the numbers of successful pushs and pops by the tasks push_value and pop_value
+	NB : Pushing & popping values outside of the tasks will render this function useless
+	1 : Underflow happened
+	0 : Underflow did not happen
+*/
+function check_if_underflow();
+	begin
+		return (j > i);
+	end
+endfunction : check_if_underflow
 
 
-
-	task ASYNC_CLEAR (input integer delay);
-		begin
-			rst_n_test = 0;
-			#delay
-			CHECK_RESET : assert (Check_if_fifo_is_reset())
-				begin
-					$display ("Clear is working at time %d", $time);
-				end else begin
-					$display("Clear not working found at %d,",$time);
-				end
-			rst_n_test = 1;
-		end
-	endtask 
-
-
-	task push_value(input logic[DATA_WIDTH:0] val, input integer N); // Todo : la tache implique un delay d'un clk cycle a chaque fois peut etre  a modifié
-		logic[DATA_WIDTH:0] value_to_be_pushed;
-		@(negedge clk_test)
-		$display("PUSH_VALUE_CALLED %d",$time);
-		begin
-			repeat (N)
-				begin
-					if (val == 0) 
-						value_to_be_pushed = $urandom();
-					else 		 
-					    value_to_be_pushed = val;
-					push_valid_i_test = 1;
-					push_data_i_test = value_to_be_pushed;
-					if (push_grant_o_test)
-						begin
-							temp_memory[i] = value_to_be_pushed;
-							$display("Push successfully temp_memory[%d] == %d", i, temp_memory[i]);
-							i++;
-						end
-					else
-						begin	
-							assert(!check_if_overflow())
-								$display("Good : No overflow occured %d",$time);
-							else
-								$display("Error underflow at time %d: ", $time);
-						end
-					#(2*HALF_T_CLK);
-					push_valid_i_test = 0;
-				end
-		end
-	endtask
+//  ████████╗ █████╗ ███████╗██╗  ██╗███████╗
+//  ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██╔════╝
+//     ██║   ███████║███████╗█████╔╝ ███████╗
+//     ██║   ██╔══██║╚════██║██╔═██╗ ╚════██║
+//     ██║   ██║  ██║███████║██║  ██╗███████║
+//     ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
 
 
 
-	task  pop_value(input integer N);
-		begin
-			//count_pop++;
-			$display("POP_VALUE_CALLED  %d",$time);
-			#(HALF_T_CLK/5) pop_grant_i_test = 1;
+
+/*	Resets the fifo
+	input delay : time of the pulse for rst_n
+
+*/
+
+task ASYNC_CLEAR (input integer delay);
+	begin
+		rst_n_test = 0;
+		#delay
+		CHECK_RESET : assert (Check_if_fifo_is_reset())
 			begin
-				@(posedge clk_test)
+				$display ("Clear is working at time %d", $time);
+			end else begin
+				$display("Clear not working found at %d,",$time);
+			end
+		rst_n_test = 1;
+	end
+endtask 
+
+
+/*	Pushes value inside the fifo
+	input val : value to be pushed, choose 0 to insert a 32b random value.
+	input N : numbers of repetitions, can range from 1 to max integer value.
+	input bandwith : duty cycle of the push_valid_i signal, can range from 0 to 100
+
+*/
+
+task automatic push_value(input logic[DATA_WIDTH:0] val, input integer N,input integer bandwidth); 
+	begin
+		logic [DATA_WIDTH:0] value_to_be_pushed;
+		repeat(N)
+		begin 
+			@(negedge clk_test)
+			begin
+				$display("PUSH_VALUE_CALLED %d",$time);
+				if (val == 0) 
+					value_to_be_pushed = $urandom();
+				else 		 
+					value_to_be_pushed = val;
+				push_valid_i_test = 1;
+				push_data_i_test = value_to_be_pushed;
+				#HALF_T_CLK
+				if (push_grant_o_test)
 					begin
-						repeat(N)
-							begin
-								if(pop_valid_o_test == 1) begin
-									assert(temp_memory[j] == pop_data_o_test)
-										$display("Good at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
-									else
-										$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
-									j++;
-								end
-								else begin
-									assert(!check_if_underflow())
-										$display("Good : No underflow occured %d",$time);
-									else
-										$display("Error at time %d : underflow", $time);
-									#(2*HALF_T_CLK)  $display("");
-								end
-							end
+						temp_memory[i] = value_to_be_pushed;
+						$display("Push successfully temp_memory[%d] == %d", i, temp_memory[i]);
+						i++;
 					end
-				pop_grant_i_test = 0;
+				else
+					begin	
+					assert(!check_if_overflow())
+						$display("Good : No overflow occured %d",$time);
+					else
+						$display("Error underflow at time %d: ", $time);
+					end
+				#(bandwidth*HALF_T_CLK/100) push_valid_i_test = 0;
 			end
 		end
-	endtask
+	end
+endtask
+
+/*	Pops value outside the fifo
+	input N : numbers of repetitions, can range from 1 to max integer value.
+	input bandwith : duty cycle of the pop_valid_i signal, can range from 1 to 100
+
+*/
 
 
-	function check_if_overflow();
-		begin
-			return ((i - j) > FIFO_DEPTH); //elements_in_fifo = i - j;
-		end
-	endfunction : check_if_overflow
+task pop_value(input integer N,input integer bandwidth);
+	begin
+		repeat(N)
+			begin 
+				@(negedge clk_test)
+				$display("POP_VALUE_CALLED  %d",$time);
+				pop_grant_i_test = 1;
+				#HALF_T_CLK
+					if(pop_valid_o_test == 1) begin
+						assert(temp_memory[j] == pop_data_o_test)
+							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
+						else
+							$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
+						j++;
+					end
+					else begin
+						assert(!check_if_underflow())
+							$display("Good : No underflow occured %d",$time);
+						else
+							$display("Error at time %d : underflow", $time);
+					end
+				#(bandwidth*HALF_T_CLK/100) pop_grant_i_test = 0;
+			end
+	end
+endtask
 
-	function check_if_underflow();
-		begin
-			return (j > i);
-		end
-	endfunction : check_if_underflow
 
 
+
+//  ████████╗███████╗███████╗████████╗███████╗
+//  ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝██╔════╝
+//     ██║   █████╗  ███████╗   ██║   ███████╗
+//     ██║   ██╔══╝  ╚════██║   ██║   ╚════██║
+//     ██║   ███████╗███████║   ██║   ███████║
+//     ╚═╝   ╚══════╝╚══════╝   ╚═╝   ╚══════╝
 
 
 	initial begin
+		
 		clk_test = 1;
 		push_valid_i_test=0;
 		pop_grant_i_test=0;
-		//TEST 1 : ASYNC_CLEAR
+
+		// Async Clear
 		ASYNC_CLEAR(HALF_T_CLK);
-		/*
-		`ifdef RECREATE_WAVEFORM_FROM_PDF
-		#(HALF_T_CLK)
-		#(HALF_T_CLK/5)
-		push_valid_i_test = 1;
-		push_value(8);
-		push_value(10); 			//Cycle 3
-		push_value(12); 			//Cycle 4
-		push_value(14); 			//Cycle 5
-		pop_grant_i_test = 1;
-		push_value(16); 			//Cycle 6
-		#(2*HALF_T_CLK)
-		push_data_i_test = 'hX; 	//Cycle 7
-		push_valid_i_test = 0;
-		pop_grant_i_test = 0;
-		#(2*HALF_T_CLK)
-		pop_grant_i_test = 1;
-		`endif
-
-		// TEST 2 : OVERFLOW
+		// TEST 1 : OVERFLOW
+		$display("Starting test 1");
+		push_value(0,FIFO_DEPTH+2,50);
+		// TEST 2 : UNDERFLOW
 		$display("Starting test 2");
-		push_value(0,6);
-		pop_value(4);
-		// TEST 3 : UNDERFLOW
-		$display("Starting test 3");
-		pop_value(4);
-		*/
-		// TEST 4 : RANDOM NUMBERS OF POPS, RANDOM NUMBER OF PUSH
+		pop_value(FIFO_DEPTH+2,50);
 
-		$display("Starting test 4");
+		$display("Starting test 3");
+		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push50
 		repeat(30)
 			begin
-				value_ = value_+ 2 ;
-				random_trigger_pgi = $urandom_range(0,1);
-				//if(random_trigger_pgi)
-				push_value(value_,1);
-				pop_value(1);
+				fork
+					begin
+				push_value(0,1,1);
+					end
+					begin
+				pop_value(1,1);
+					end
+				join_any
 			end
+		// TEST 4 :FULL PUSH HALF POP 
+		$display("Starting test 4");
+		repeat(30)
+			begin					
+			fork
+				begin 
+					push_value(0,1,100);
+				end
+				begin 
+					pop_value(1,1);
+				end
+			join_any
+			end
+
+
+
+
+
+
+
 
 
 
@@ -204,13 +261,6 @@ module tb #(
 
 
 	always #HALF_T_CLK clk_test = ~clk_test;
-	//always @(posedge clk_test) #(HALF_T_CLK/5) push_data_i_test = $urandom();
-	//always @(posedge clk_test) @(DUT.fifo_i.count == FIFO_DEPTH - 1) pop_grant_i_test = 1;
-
-
-
-
-
 
 
 endmodule : tb
