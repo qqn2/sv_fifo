@@ -51,6 +51,20 @@ module tb #(
 //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
 //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 
+
+
+/*
+	Returns if parity checker changed pop_valid_o
+	1 : Operation successful
+	0 : Operation unsuccesful
+*/
+function Check_if_parity_check();
+	begin
+		return !( pop_valid_o_test || DUT.fifo_i.pop_grant_i);
+	end
+endfunction
+
+/*
 /*
 	Returns if fifo is reset or not 
 	1 : Reset successful
@@ -58,10 +72,7 @@ module tb #(
 */
 function Check_if_fifo_is_reset();
 	begin
-		if (DUT.fifo_i.count_read || DUT.fifo_i.count_write || DUT.fifo_i.count_fifo)
-			return 0;
-		else
-			return 1;
+		return !(DUT.fifo_i.count_read || DUT.fifo_i.count_write || DUT.fifo_i.count_fifo);		
 	end
 endfunction
 
@@ -183,6 +194,12 @@ task pop_value(input integer N,input integer bandwidth);
 							$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
 						j++;
 					end
+					else if (pop_valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
+						assert(Check_if_parity_check)
+							$display("Good : Corrupt data thrown away %d",$time);
+						else
+							$display("Brror : Corrupt data not handled %d", $time);
+					end
 					else begin
 						assert(!check_if_underflow())
 							$display("Good : No underflow occured %d",$time);
@@ -214,26 +231,27 @@ endtask
 		// Async Clear
 		ASYNC_CLEAR(HALF_T_CLK);
 		// TEST 1 : OVERFLOW
-		$display("Starting test 1");
+	/*	$display("Starting test 1");
 		push_value(0,FIFO_DEPTH+2,50);
 		// TEST 2 : UNDERFLOW
 		$display("Starting test 2");
 		pop_value(FIFO_DEPTH+2,50);
-
-		$display("Starting test 3");
+	*/
+		$display("Starting test 3"); 
 		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push50
 		repeat(30)
 			begin
+				value_ = value_ + 3;
 				fork
 					begin
-				push_value(0,1,1);
+				push_value(value_,1,1);
 					end
 					begin
 				pop_value(1,1);
 					end
-				join_any
+				join
 			end
-		// TEST 4 :FULL PUSH HALF POP 
+	/*	// TEST 4 :FULL PUSH HALF POP 
 		$display("Starting test 4");
 		repeat(30)
 			begin					
@@ -246,7 +264,7 @@ endtask
 				end
 			join_any
 			end
-
+	*/
 
 
 
