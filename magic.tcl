@@ -1,5 +1,5 @@
-variable library  "/home/ss/Desktop/Verilog_projects/FIFO"
-
+#variable library  "/home/ss/Desktop/Verilog_projects/FIFO"
+variable library "C:/Users/3600X-2700/Desktop/New_folder/sv_fifo"
 vlib $library
 
 vmap work $library
