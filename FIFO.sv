@@ -37,7 +37,7 @@ module FIFO #(
 		my_ram
 			(
 				.address_0(count_write),
-				.chip_enable_0(push_valid_i),
+				.chip_enable_0(push_grant_o),
 				.write_read_0(1'b1), 									// I will always write from the push side
 				.data_0(push_data_i),
 				.address_1(count_read),
@@ -48,10 +48,14 @@ module FIFO #(
 			);
 
 
-	assign push_grant_o = ! (count_fifo == FIFO_DEPTH) ;							// 1 : FIFO IS NOT FULL
-	assign pop_valid_o  = ! (count_fifo == 0 );										// 1 : FIFO IS NOT EMPTY
+	assign push_grant_o = !(count_fifo == FIFO_DEPTH) || pop_grant_i;				// 1 : FIFO IS READY TO PUSH
+	assign pop_valid_o  = !(count_fifo == 0 ) || push_valid_i;						// 1 : FIFO IS READY TO POP
 	assign pop_request  = pop_valid_o  && pop_grant_i;  							// 1 : RECEIVER IS READY & FIFO IS READY
 	assign push_request = push_valid_i && push_grant_o;								// 1 : SENDER IS READY   & FIFO IS READY
+
+
+
+
 
 
 
@@ -61,6 +65,14 @@ module FIFO #(
 //  ██╔═══╝ ██║   ██║██╔═══╝
 //  ██║     ╚██████╔╝██║
 //  ╚═╝      ╚═════╝ ╚═╝
+
+
+	always_comb  
+		if(~rst_n) 
+			for (int i = 0; i < FIFO_DEPTH; i++) begin
+				my_ram.memory[i]=0;
+			end
+
 
 	always_comb
 		begin
@@ -87,7 +99,7 @@ module FIFO #(
 			next_count_write = count_write + 1;
 	end
 
-	always_comb begin : next_pointer_fifo
+	always_comb begin : next_counter_fifo
 		next_count_fifo = count_fifo;
 		if(~rst_n) begin
 			next_count_fifo = 0;

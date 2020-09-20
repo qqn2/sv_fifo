@@ -11,7 +11,7 @@ module parity_encoder #(
 );
 
 
-	logic 							parity_bit; 				// Parity_bit
+	logic 							parity_bit=0; 				// Parity_bit
 	logic							Valid_result;
 
 	always_comb begin : Get_parity_and_get_result
@@ -27,7 +27,7 @@ module parity_encoder #(
 
 	always_comb begin
 			pop_valid_receiver = (Valid_result) ? pop_valid_fifo : 0;
-			pop_grant_fifo     = (Valid_result) ? pop_grant_receiver : 0;
+			pop_grant_fifo     = (Valid_result) ? pop_grant_receiver : 1;
 		end
 
 

@@ -39,7 +39,7 @@ module DUAL_PORT_RAM #(
 //  ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝       ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝
 
 
-	always @(address_1,chip_enable_1,write_read_1)
+	always @(address_1,chip_enable_1,write_read_1,address_0)
 		begin
 			if (chip_enable_1 && !write_read_1)
 				data_1_out = memory[address_1];

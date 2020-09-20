@@ -60,7 +60,7 @@ module tb #(
 */
 function Check_if_parity_check();
 	begin
-		return !( pop_valid_o_test || DUT.fifo_i.pop_grant_i);
+		return ( pop_valid_o_test == 0 && DUT.fifo_i.pop_grant_i == 1);
 	end
 endfunction
 
@@ -184,21 +184,23 @@ task pop_value(input integer N,input integer bandwidth);
 		repeat(N)
 			begin 
 				@(negedge clk_test)
-				$display("POP_VALUE_CALLED  %d",$time);
+				#(HALF_T_CLK/5) $display("POP_VALUE_CALLED  %d",$time);
 				pop_grant_i_test = 1;
 				#HALF_T_CLK
 					if(pop_valid_o_test == 1) begin
 						assert(temp_memory[j] == pop_data_o_test)
 							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
-						else
+						else begin
 							$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
-						j++;
+							end
+							j++;
 					end
 					else if (pop_valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
-						assert(Check_if_parity_check)
+						assert(Check_if_parity_check())
 							$display("Good : Corrupt data thrown away %d",$time);
 						else
-							$display("Brror : Corrupt data not handled %d", $time);
+							$display("Error : Corrupt data not handled %d", $time);
+						j++;
 					end
 					else begin
 						assert(!check_if_underflow())
@@ -227,16 +229,17 @@ endtask
 		clk_test = 1;
 		push_valid_i_test=0;
 		pop_grant_i_test=0;
+		push_data_i_test=0;
 
 		// Async Clear
-		ASYNC_CLEAR(HALF_T_CLK);
+		ASYNC_CLEAR(HALF_T_CLK/2);
 		// TEST 1 : OVERFLOW
-	/*	$display("Starting test 1");
+		$display("Starting test 1");
 		push_value(0,FIFO_DEPTH+2,50);
 		// TEST 2 : UNDERFLOW
 		$display("Starting test 2");
 		pop_value(FIFO_DEPTH+2,50);
-	*/
+	
 		$display("Starting test 3"); 
 		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push50
 		repeat(30)
@@ -244,14 +247,14 @@ endtask
 				value_ = value_ + 3;
 				fork
 					begin
-				push_value(value_,1,1);
+				push_value(value_,1,25);
 					end
 					begin
-				pop_value(1,1);
+				pop_value(1,25);
 					end
 				join
 			end
-	/*	// TEST 4 :FULL PUSH HALF POP 
+		// TEST 4 :FULL PUSH HALF POP 
 		$display("Starting test 4");
 		repeat(30)
 			begin					
@@ -260,11 +263,12 @@ endtask
 					push_value(0,1,100);
 				end
 				begin 
-					pop_value(1,1);
+					pop_value(1,50);
 				end
 			join_any
 			end
-	*/
+		// TEST 5 : 
+	
 
 
 
