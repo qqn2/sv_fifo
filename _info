@@ -11,7 +11,7 @@ cModel Technology
 Z0 dC:/Users/3600X-2700/Desktop/New_folder/sv_fifo
 vDUAL_PORT_RAM
 Z1 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
-Z2 !s110 1600528506
+Z2 !s110 1600636615
 !i10b 1
 !s100 ZIOkLEgO1m>^U>4Vfl6]P2
 Z3 !s11b Dg1SIo80bB@j0V0VzS_@n1
@@ -22,13 +22,13 @@ R0
 w1600527625
 8ram.sv
 Fram.sv
-!i122 194
+!i122 215
 L0 1 56
 Z5 OV;L;2020.1;71
 r1
 !s85 0
 31
-Z6 !s108 1600528506.000000
+Z6 !s108 1600636615.000000
 !s107 ram.sv|
 !s90 -reportprogress|300|-sv|ram.sv|
 !i113 1
@@ -48,7 +48,7 @@ R0
 w1600527057
 8FIFO.sv
 FFIFO.sv
-!i122 192
+!i122 213
 L0 1 177
 R5
 r1
@@ -74,7 +74,7 @@ R0
 w1600523331
 8parity_encoder.sv
 Fparity_encoder.sv
-!i122 195
+!i122 216
 L0 1 41
 R5
 r1
@@ -90,17 +90,17 @@ vtb
 R1
 R2
 !i10b 1
-!s100 [I1S?B=VkR?RSJ1_mZVGM0
+!s100 NN69<<BDCSXPdJKZDAaOn3
 R3
-Ik_jWNQQNdZGGW7iMDRP021
+I>o=:`:RiiYDnTY7104YlL2
 R4
 S1
 R0
-w1600528502
+w1600636596
 8tb.sv
 Ftb.sv
-!i122 193
-L0 4 284
+!i122 214
+L0 4 340
 R5
 r1
 !s85 0
@@ -113,7 +113,7 @@ o-sv
 R7
 vtop
 R1
-R2
+!s110 1600636616
 !i10b 1
 !s100 ;QG@z;<3_Toh;OZCGz04b0
 R3
@@ -124,13 +124,13 @@ R0
 w1600179925
 8top.sv
 Ftop.sv
-!i122 196
+!i122 217
 L0 1 52
 R5
 r1
 !s85 0
 31
-R6
+!s108 1600636616.000000
 !s107 top.sv|
 !s90 -reportprogress|300|-sv|top.sv|
 !i113 1

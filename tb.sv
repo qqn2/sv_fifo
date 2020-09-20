@@ -152,7 +152,7 @@ task automatic push_value(input logic[DATA_WIDTH:0] val, input integer N,input i
 					value_to_be_pushed = val;
 				push_valid_i_test = 1;
 				push_data_i_test = value_to_be_pushed;
-				#HALF_T_CLK
+		/*		#
 				if (push_grant_o_test)
 					begin
 						temp_memory[i] = value_to_be_pushed;
@@ -166,7 +166,7 @@ task automatic push_value(input logic[DATA_WIDTH:0] val, input integer N,input i
 					else
 						$display("Error underflow at time %d: ", $time);
 					end
-				#(bandwidth*HALF_T_CLK/100) push_valid_i_test = 0;
+		*/		#(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) push_valid_i_test = 0;
 			end
 		end
 	end
@@ -187,7 +187,7 @@ task pop_value(input integer N,input integer bandwidth);
 				#(HALF_T_CLK/5) $display("POP_VALUE_CALLED  %d",$time);
 				pop_grant_i_test = 1;
 				#HALF_T_CLK
-					if(pop_valid_o_test == 1) begin
+		/*			if(pop_valid_o_test == 1) begin
 						assert(temp_memory[j] == pop_data_o_test)
 							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
 						else begin
@@ -208,7 +208,7 @@ task pop_value(input integer N,input integer bandwidth);
 						else
 							$display("Error at time %d : underflow", $time);
 					end
-				#(bandwidth*HALF_T_CLK/100) pop_grant_i_test = 0;
+		*/		#(bandwidth*HALF_T_CLK/100) pop_grant_i_test = 0;
 			end
 	end
 endtask
@@ -224,8 +224,7 @@ endtask
 //     ╚═╝   ╚══════╝╚══════╝   ╚═╝   ╚══════╝
 
 
-	initial begin
-		
+	initial begin		
 		clk_test = 1;
 		push_valid_i_test=0;
 		pop_grant_i_test=0;
@@ -263,26 +262,81 @@ endtask
 					push_value(0,1,100);
 				end
 				begin 
-					pop_value(1,50);
+					pop_value(1,1);
 				end
 			join_any
 			end
-		// TEST 5 : 
-	
-
-
-
-
-
-
-
-
-
-
+		// TEST 5 : 2 PUSH 1 POP
+		repeat(30)
+			begin					
+			fork
+				begin 
+					push_value(0,1,100);
+				end
+				begin 
+					pop_value(1,1);
+				end
+			join_any
+			end
 	end
 
 
-	always #HALF_T_CLK clk_test = ~clk_test;
+	always 
+	begin
+		#HALF_T_CLK clk_test = ~clk_test;
+	end
+	// PUSH VERIFICATION
+	always
+	begin
+		@(posedge push_valid_i_test)
+			@(posedge clk_test)
+				if (push_grant_o_test)
+					begin
+						temp_memory[i] = push_data_i_test;
+						$display("Push successfully temp_memory[%d] == %d", i, temp_memory[i]);
+						i++;
+					end
+				else
+					begin	
+					assert(!check_if_overflow())
+						$display("Good : No overflow occured %d",$time);
+					else
+						$display("Error underflow at time %d: ", $time);
+					end
+	end
+ 	// POP VERIFICATION
+ 	always
+	begin
+		@(posedge pop_grant_i_test)
+			@(posedge clk_test)
+				wait(i > j )
+				if(pop_valid_o_test == 1) begin
+
+						assert(temp_memory[j] == pop_data_o_test)
+							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
+						else begin
+							$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
+							end
+							j++;
+					end
+					else if (pop_valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
+						assert(Check_if_parity_check())
+							$display("Good : Corrupt data thrown away %d",$time);
+						else
+							$display("Error : Corrupt data not handled %d", $time);
+						j++;
+					end
+					else begin
+						assert(!check_if_underflow())
+							$display("Good : No underflow occured %d",$time);
+						else
+							$display("Error at time %d : underflow", $time);
+					end
+	end
+
+
+
+
 
 
 endmodule : tb
