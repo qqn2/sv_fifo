@@ -37,11 +37,11 @@ module FIFO #(
 		my_ram
 			(
 				.address_0(count_write),
-				.chip_enable_0(push_grant_o),
+				.chip_enable_0(push_request),
 				.write_read_0(1'b1), 									// I will always write from the push side
 				.data_0(push_data_i),
 				.address_1(count_read),
-				.chip_enable_1(pop_valid_o),
+				.chip_enable_1(pop_request),
 				.write_read_1(1'b0),									// I will always read from the pop side
 				.data_1(data_ram)
 

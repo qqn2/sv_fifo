@@ -308,10 +308,12 @@ endtask
  	always
 	begin
 		@(posedge pop_grant_i_test)
-			@(posedge clk_test)
+		/*	for (int i = 0; i < FIFO_DEPTH; i++) begin
+				$display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
+			end
+		*/	@(posedge clk_test)
 				wait(i > j )
 				if(pop_valid_o_test == 1) begin
-
 						assert(temp_memory[j] == pop_data_o_test)
 							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
 						else begin
