@@ -1,7 +1,12 @@
-# vsim tb 
-# Start time: 08:33:00 on Sep 18,2020
-# ** Error (suppressible): (vsim-19) Failed to access library 'C:/Users/3600X-2700/Desktop/New_folder/sv_fifo' at "C:/Users/3600X-2700/Desktop/New_folder/sv_fifo".
-# No such file or directory. (errno = ENOENT)
-# Error loading design
-# End time: 08:33:00 on Sep 18,2020, Elapsed time: 0:00:00
-# Errors: 1, Warnings: 0
+# vsim -voptargs="+acc" -L work tb 
+# Start time: 13:53:04 on Sep 22,2020
+# Loading sv_std.std
+# Loading work.tb
+# Loading work.top
+# Loading work.parity_encoder
+# Loading work.FIFO
+# Loading work.DUAL_PORT_RAM
+# 
+# <EOF>
+# End time: 13:53:04 on Sep 22,2020, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0

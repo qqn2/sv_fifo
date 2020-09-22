@@ -18,8 +18,6 @@ module tb #(
 	wire		 [DATA_WIDTH:0] 		pop_data_o_test; 	// Data output
 	wire 								pop_valid_o_test;	// High if fifo has data to send
 	logic[DATA_WIDTH:0] temp_memory[(100*FIFO_DEPTH):0];	// Temporary array with enough elements for the test
-	logic random_trigger_pgi = 0;							// random value to implement random duty cycle  for pop_gi
-	logic random_trigger_pvi = 0;							// random value to implement random duty cycle for push_vi
 	int i = 0;												// Numbers of elements that we pushed successfully
 	int j = 0;												// Numbers of elements that we popped successfully
 	logic[DATA_WIDTH:0]  value_ = 0;						// Variable I might use to input data
@@ -109,8 +107,6 @@ endfunction : check_if_underflow
 //     ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
 
 
-
-
 /*	Resets the fifo
 	input delay : time of the pulse for rst_n
 
@@ -152,21 +148,7 @@ task automatic push_value(input logic[DATA_WIDTH:0] val, input integer N,input i
 					value_to_be_pushed = val;
 				push_valid_i_test = 1;
 				push_data_i_test = value_to_be_pushed;
-		/*		#
-				if (push_grant_o_test)
-					begin
-						temp_memory[i] = value_to_be_pushed;
-						$display("Push successfully temp_memory[%d] == %d", i, temp_memory[i]);
-						i++;
-					end
-				else
-					begin	
-					assert(!check_if_overflow())
-						$display("Good : No overflow occured %d",$time);
-					else
-						$display("Error underflow at time %d: ", $time);
-					end
-		*/		#(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) push_valid_i_test = 0;
+				#(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) push_valid_i_test = 0;
 			end
 		end
 	end
@@ -184,31 +166,9 @@ task pop_value(input integer N,input integer bandwidth);
 		repeat(N)
 			begin 
 				@(negedge clk_test)
-				#(HALF_T_CLK/5) $display("POP_VALUE_CALLED  %d",$time);
+				$display("POP_VALUE_CALLED  %d",$time);
 				pop_grant_i_test = 1;
-				#HALF_T_CLK
-		/*			if(pop_valid_o_test == 1) begin
-						assert(temp_memory[j] == pop_data_o_test)
-							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
-						else begin
-							$display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], pop_data_o_test);
-							end
-							j++;
-					end
-					else if (pop_valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
-						assert(Check_if_parity_check())
-							$display("Good : Corrupt data thrown away %d",$time);
-						else
-							$display("Error : Corrupt data not handled %d", $time);
-						j++;
-					end
-					else begin
-						assert(!check_if_underflow())
-							$display("Good : No underflow occured %d",$time);
-						else
-							$display("Error at time %d : underflow", $time);
-					end
-		*/		#(bandwidth*HALF_T_CLK/100) pop_grant_i_test = 0;
+				#(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) pop_grant_i_test = 0;
 			end
 	end
 endtask
@@ -239,8 +199,8 @@ endtask
 		$display("Starting test 2");
 		pop_value(FIFO_DEPTH+2,50);
 	
-		$display("Starting test 3"); 
-		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push50
+/* 		$display("Starting test 3"); 
+		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push ==50
 		repeat(30)
 			begin
 				value_ = value_ + 3;
@@ -262,21 +222,23 @@ endtask
 					push_value(0,1,100);
 				end
 				begin 
-					pop_value(1,1);
+					pop_value(1,10);
 				end
-			join_any
-			end
+			join
+			end 
 		// TEST 5 : 2 PUSH 1 POP
+*/		$display("Starting test 5");
 		repeat(30)
-			begin					
+			begin	
+			value_ = value_ + 2;				
 			fork
 				begin 
-					push_value(0,1,100);
+					push_value(value_,2,20);
 				end
 				begin 
-					pop_value(1,1);
+					pop_value(1,20);
 				end
-			join_any
+			join
 			end
 	end
 
@@ -308,12 +270,12 @@ endtask
  	always
 	begin
 		@(posedge pop_grant_i_test)
-		/*	for (int i = 0; i < FIFO_DEPTH; i++) begin
+			for (int i = 0; i < FIFO_DEPTH; i++) begin
 				$display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
 			end
-		*/	@(posedge clk_test)
-				wait(i > j )
+			@(posedge clk_test)
 				if(pop_valid_o_test == 1) begin
+					wait(i > j )
 						assert(temp_memory[j] == pop_data_o_test)
 							$display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
 						else begin
