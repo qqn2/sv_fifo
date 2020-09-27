@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module FIFO #(
 	parameter DATA_WIDTH = 32, // Self explanatory parameters
 	parameter FIFO_DEPTH = 4
@@ -22,6 +24,9 @@ module FIFO #(
 	wire 		[DATA_WIDTH:0]	 			data_ram;    	  		    	// Output data from RAM module
 	logic 					 				pop_request;			    	// High when we have a pop request
 
+
+	logic full;
+
 //  ██████╗ ██████╗     ██████╗  █████╗ ███╗   ███╗
 //  ██╔══██╗██╔══██╗    ██╔══██╗██╔══██╗████╗ ████║
 //  ██║  ██║██████╔╝    ██████╔╝███████║██╔████╔██║
@@ -43,8 +48,8 @@ module FIFO #(
 				.address_1(count_read),
 				.chip_enable_1(pop_request),
 				.write_read_1(1'b0),									// I will always read from the pop side
-				.data_1(data_ram)
-
+				.data_1(data_ram),
+				.full(full)
 			);
 
 
@@ -52,9 +57,8 @@ module FIFO #(
 	assign pop_valid_o  = !(count_fifo == 0 ) || push_valid_i;						// 1 : FIFO IS READY TO POP
 	assign pop_request  = pop_valid_o  && pop_grant_i;  							// 1 : RECEIVER IS READY & FIFO IS READY
 	assign push_request = push_valid_i && push_grant_o;								// 1 : SENDER IS READY   & FIFO IS READY
-
-
-
+ 	
+ 	assign full = (count_fifo == FIFO_DEPTH);
 
 
 

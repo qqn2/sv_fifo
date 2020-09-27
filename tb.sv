@@ -141,14 +141,21 @@ task automatic push_value(input logic[DATA_WIDTH:0] val, input integer N,input i
 		begin 
 			@(negedge clk_test)
 			begin
-				$display("PUSH_VALUE_CALLED %d",$time);
 				if (val == 0) 
 					value_to_be_pushed = $urandom();
 				else 		 
 					value_to_be_pushed = val;
+				$display("PUSH_VALUE_CALLED %d value : %d",$time, value_to_be_pushed);
+				for (int i = 0; i < FIFO_DEPTH; i++) begin
+				$display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
+				end
 				push_valid_i_test = 1;
 				push_data_i_test = value_to_be_pushed;
 				#(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) push_valid_i_test = 0;
+				$display("PUSH_DONE %d",$time);
+				for (int i = 0; i < FIFO_DEPTH; i++) begin
+				$display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
+				end
 			end
 		end
 	end
@@ -194,12 +201,12 @@ endtask
 		ASYNC_CLEAR(HALF_T_CLK/2);
 		// TEST 1 : OVERFLOW
 		$display("Starting test 1");
-		push_value(0,FIFO_DEPTH+2,50);
+		push_value(0,FIFO_DEPTH+2,10);
 		// TEST 2 : UNDERFLOW
 		$display("Starting test 2");
-		pop_value(FIFO_DEPTH+2,50);
+		pop_value(FIFO_DEPTH+2,10);
 	
-/* 		$display("Starting test 3"); 
+ 	/*	$display("Starting test 3"); 
 		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push ==50
 		repeat(30)
 			begin
@@ -226,17 +233,17 @@ endtask
 				end
 			join
 			end 
-		// TEST 5 : 2 PUSH 1 POP
-*/		$display("Starting test 5");
+	*/	// TEST 5 : 2 PUSH 1 POP
+		$display("Starting test 5");
 		repeat(30)
 			begin	
 			value_ = value_ + 2;				
 			fork
 				begin 
-					push_value(value_,2,20);
+					push_value(value_,2,1);
 				end
 				begin 
-					pop_value(1,20);
+					pop_value(1,1);
 				end
 			join
 			end
@@ -251,6 +258,7 @@ endtask
 	always
 	begin
 		@(posedge push_valid_i_test)
+
 			@(posedge clk_test)
 				if (push_grant_o_test)
 					begin
@@ -265,14 +273,12 @@ endtask
 					else
 						$display("Error underflow at time %d: ", $time);
 					end
+
 	end
  	// POP VERIFICATION
  	always
 	begin
 		@(posedge pop_grant_i_test)
-			for (int i = 0; i < FIFO_DEPTH; i++) begin
-				$display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
-			end
 			@(posedge clk_test)
 				if(pop_valid_o_test == 1) begin
 					wait(i > j )
