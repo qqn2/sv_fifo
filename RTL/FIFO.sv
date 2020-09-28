@@ -43,7 +43,8 @@ module FIFO #(
 				.address_1(count_read),
 				.chip_enable_1(pop_request),
 				.write_read_1(1'b0),									// I will always read from the pop side
-				.data_1(data_ram)
+				.data_1(data_ram),
+				.rst_n(rst_n)
 
 			);
 
@@ -65,13 +66,6 @@ module FIFO #(
 //  ██╔═══╝ ██║   ██║██╔═══╝
 //  ██║     ╚██████╔╝██║
 //  ╚═╝      ╚═════╝ ╚═╝
-
-
-	always_comb
-		if(~rst_n)
-			for (int i = 0; i < FIFO_DEPTH; i++) begin
-				my_ram.memory[i]=0;
-			end
 
 
 	always_comb
