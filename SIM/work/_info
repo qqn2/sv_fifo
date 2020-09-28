@@ -1,0 +1,113 @@
+m255
+K4
+z2
+!s11f vlog 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 d/home/ss/Desktop/FIFO_GI/SIM
+vDUAL_PORT_RAM
+Z1 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
+Z2 !s110 1601294194
+!i10b 1
+!s100 ZIOkLEgO1m>^U>4Vfl6]P2
+Z3 !s11b Dg1SIo80bB@j0V0VzS_@n1
+Ili:Wfo=2nh<`P8_GVai1a3
+Z4 VDg1SIo80bB@j0V0VzS_@n1
+S1
+R0
+w1600779173
+8../RTL/ram.sv
+F../RTL/ram.sv
+!i122 1
+L0 1 56
+Z5 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z6 !s108 1601294194.000000
+!s107 ../RTL/ram.sv|
+!s90 -sv|../RTL/ram.sv|
+!i113 1
+o-sv
+Z7 tCvgOpt 0
+n@d@u@a@l_@p@o@r@t_@r@a@m
+vFIFO
+R1
+R2
+!i10b 1
+!s100 4[CQV^=N6Xn5YQ=Y^li^j1
+R3
+IZ[4U77@k>@[TInVLaX2A70
+R4
+S1
+R0
+w1601286150
+8../RTL/FIFO.sv
+F../RTL/FIFO.sv
+!i122 0
+L0 1 127
+R5
+r1
+!s85 0
+31
+R6
+!s107 ../RTL/FIFO.sv|
+!s90 -sv|../RTL/FIFO.sv|
+!i113 1
+o-sv
+R7
+n@f@i@f@o
+vparity_encoder
+R1
+R2
+!i10b 1
+!s100 Zd>`9YGHS;42L@`l1X`Q<2
+R3
+I1:Qja6:[C3]MRb9=36;]F3
+R4
+S1
+R0
+w1600678886
+8../RTL/parity_encoder.sv
+F../RTL/parity_encoder.sv
+!i122 2
+L0 1 41
+R5
+r1
+!s85 0
+31
+R6
+!s107 ../RTL/parity_encoder.sv|
+!s90 -sv|../RTL/parity_encoder.sv|
+!i113 1
+o-sv
+R7
+vtop
+R1
+R2
+!i10b 1
+!s100 ;QG@z;<3_Toh;OZCGz04b0
+R3
+IdoR>0]RT6:IENNJn0eSID0
+R4
+S1
+R0
+w1600179925
+8../RTL/top.sv
+F../RTL/top.sv
+!i122 3
+L0 1 52
+R5
+r1
+!s85 0
+31
+R6
+!s107 ../RTL/top.sv|
+!s90 -sv|../RTL/top.sv|
+!i113 1
+o-sv
+R7
