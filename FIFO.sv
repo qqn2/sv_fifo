@@ -48,7 +48,7 @@ module FIFO #(
 			);
 
 
-	assign push_grant_o = !(count_fifo == FIFO_DEPTH) || pop_grant_i;				// 1 : FIFO IS READY TO PUSH
+	assign push_grant_o = !(count_fifo == FIFO_DEPTH);								// 1 : FIFO IS READY TO PUSH
 	assign pop_valid_o  = !(count_fifo == 0 ) || push_valid_i;						// 1 : FIFO IS READY TO POP
 	assign pop_request  = pop_valid_o  && pop_grant_i;  							// 1 : RECEIVER IS READY & FIFO IS READY
 	assign push_request = push_valid_i && push_grant_o;								// 1 : SENDER IS READY   & FIFO IS READY
@@ -67,8 +67,8 @@ module FIFO #(
 //  ╚═╝      ╚═════╝ ╚═╝
 
 
-	always_comb  
-		if(~rst_n) 
+	always_comb
+		if(~rst_n)
 			for (int i = 0; i < FIFO_DEPTH; i++) begin
 				my_ram.memory[i]=0;
 			end
@@ -87,82 +87,32 @@ module FIFO #(
 //  ╚═╝      ╚═════╝ ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 
 
-	always_comb begin : next_pointer
-		next_count_write = count_write;
-		if(~rst_n) begin
-			next_count_write = 0;
-		end
-		if ( push_request &&(count_write == FIFO_DEPTH - 1 ) ) begin
-			next_count_write = 0;
-		end
-		else if (push_request && !(count_write == FIFO_DEPTH - 1) )
-			next_count_write = count_write + 1;
-	end
-
-	always_comb begin : next_counter_fifo
-		next_count_fifo = count_fifo;
-		if(~rst_n) begin
-			next_count_fifo = 0;
-		end
-		else if (push_request && pop_request)
-			next_count_fifo = count_fifo;
-		else if (push_request && !pop_request) begin
-			next_count_fifo = count_fifo + 1;
-		end
-		else if (pop_request && !push_request)
-			next_count_fifo = count_fifo - 1;
-	end
-
-
-
-
-	always_comb begin : next_pointer_rd
-		next_count_read = count_read;
-		if(~rst_n) begin
-			next_count_read = 0;
-		end
-		else if ( pop_request && (count_read == FIFO_DEPTH - 1) )  begin
-			next_count_read = 0;
-		end
-		else if (pop_request && !(count_read == FIFO_DEPTH - 1) )
-			next_count_read = count_read + 1;
-
-	end
-
-
-
-//  ██████╗  ██████╗ ██╗███╗   ██╗████████╗███████╗██████╗     ██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗
-//  ██╔══██╗██╔═══██╗██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗    ██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝
-//  ██████╔╝██║   ██║██║██╔██╗ ██║   ██║   █████╗  ██████╔╝    ██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗
-//  ██╔═══╝ ██║   ██║██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗    ██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝
-//  ██║     ╚██████╔╝██║██║ ╚████║   ██║   ███████╗██║  ██║    ╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗
-//  ╚═╝      ╚═════╝ ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝     ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝
-
-
-
-
 	always_ff @(posedge clk or negedge rst_n) begin : proc_clk
-		if(~rst_n) begin
+		if(~rst_n || (push_request &&  (count_write == FIFO_DEPTH - 1 )) ) begin
 			count_write <= 0;
-		end else begin
-			count_write <= next_count_write;
+		end else if  (push_request && !(count_write == FIFO_DEPTH - 1 )  ) begin
+			count_write <= count_write + 1 ;
 		end
 	end
 
 	always_ff @(posedge clk or negedge rst_n) begin : proc_clk_rd
-		if(~rst_n) begin
+		if(~rst_n || (pop_request && (count_read == FIFO_DEPTH - 1)) ) begin
 			count_read <= 0;
-		end else begin
-			count_read <= next_count_read;
+		end else if  (pop_request && !(count_read == FIFO_DEPTH - 1) ) begin
+			count_read <= count_read + 1 ;
 		end
 	end
 
 	always_ff @(posedge clk or negedge rst_n) begin : proc_clk_fifo
 		if(~rst_n) begin
 			count_fifo <= 0;
-		end else begin
-			count_fifo <= next_count_fifo;
+		end else if (push_request && pop_request)
+			count_fifo = count_fifo;
+		else if (push_request && !pop_request) begin
+			count_fifo = count_fifo + 1;
 		end
+		else if (pop_request && !push_request)
+			count_fifo = count_fifo - 1;
 	end
 
 

@@ -11,7 +11,7 @@ cModel Technology
 dC:/Users/3600X-2700/Desktop/New_folder/sv_fifo
 vDUAL_PORT_RAM
 Z0 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
-Z1 !s110 1600775556
+Z1 !s110 1601284990
 !i10b 1
 !s100 ZIOkLEgO1m>^U>4Vfl6]P2
 Z2 !s11b Dg1SIo80bB@j0V0VzS_@n1
@@ -19,16 +19,16 @@ IzDY7_hn1Y=<3mD8EmnNdR3
 Z3 VDg1SIo80bB@j0V0VzS_@n1
 S1
 Z4 d/home/ss/Desktop/FIFO_GI
-Z5 w1600678886
+w1600779173
 8ram.sv
 Fram.sv
-!i122 266
+!i122 330
 L0 1 56
-Z6 OV;L;2020.1;71
+Z5 OV;L;2020.1;71
 r1
 !s85 0
 31
-!s108 1600775555.000000
+Z6 !s108 1601284990.000000
 !s107 ram.sv|
 !s90 -sv|ram.sv|
 !i113 1
@@ -37,26 +37,26 @@ Z7 tCvgOpt 0
 n@d@u@a@l_@p@o@r@t_@r@a@m
 vFIFO
 R0
-!s110 1600776226
+R1
 !i10b 1
-!s100 7PElJP^B5fhNWT1mQl?ba3
+!s100 4[CQV^=N6Xn5YQ=Y^li^j1
 R2
-IEV?VkV@J1gC1`4IGH=0^^0
+IP@`;X;4OP;63Md>UERoGa1
 R3
 S1
 R4
-w1600757325
+w1601280978
 8FIFO.sv
 FFIFO.sv
-!i122 270
-L0 1 177
-R6
+!i122 329
+L0 1 127
+R5
 r1
 !s85 0
 31
-!s108 1600776226.000000
+R6
 !s107 FIFO.sv|
-!s90 -reportprogress|300|-sv|FIFO.sv|
+!s90 -sv|FIFO.sv|
 !i113 1
 o-sv
 R7
@@ -71,16 +71,16 @@ IMlW_5?R4l0RVk2LU0bG2<1
 R3
 S1
 R4
-R5
+w1600678886
 8parity_encoder.sv
 Fparity_encoder.sv
-!i122 267
+!i122 331
 L0 1 41
-R6
+R5
 r1
 !s85 0
 31
-Z8 !s108 1600775556.000000
+R6
 !s107 parity_encoder.sv|
 !s90 -sv|parity_encoder.sv|
 !i113 1
@@ -88,26 +88,26 @@ o-sv
 R7
 vtb
 R0
-!s110 1600776474
+R1
 !i10b 1
-!s100 <ANO4oTX`f?mEIW7RX4fT1
+!s100 J<leN5[kPdADeWX0iWC4T1
 R2
-IbgXL0Sgh:X:3Y=WTi@o2C3
+I>^Z2EceiRJ?ZKcBLdI5A_1
 R3
 S1
 R4
-w1600776466
+w1601284986
 8tb.sv
 Ftb.sv
-!i122 272
-L0 4 303
-R6
+!i122 333
+L0 4 305
+R5
 r1
 !s85 0
 31
-!s108 1600776474.000000
+R6
 !s107 tb.sv|
-!s90 -reportprogress|300|-sv|tb.sv|
+!s90 -sv|tb.sv|
 !i113 1
 o-sv
 R7
@@ -124,13 +124,13 @@ R4
 w1600179925
 8top.sv
 Ftop.sv
-!i122 268
+!i122 332
 L0 1 52
-R6
+R5
 r1
 !s85 0
 31
-R8
+R6
 !s107 top.sv|
 !s90 -sv|top.sv|
 !i113 1
