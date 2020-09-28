@@ -206,7 +206,7 @@ endtask
 		pop_value(FIFO_DEPTH+2,20);
 	
  		$display("Starting test 3"); 
-		// TEST 3 : PARALLEL PUSH POP = Duty cycle of pop & push ==50
+		// TEST 3 : PARALLEL PUSH POP with corrupt data 50% of the time , Duty cycle of pop & push ==50
 		repeat(30)
 			begin
 				value_ = value_ + 3;
@@ -243,6 +243,20 @@ endtask
 				end
 				begin 
 					pop_value(1,20);
+				end
+			join
+			end
+		// TEST 6 : 1 PUSH 2 POP
+		$display("Starting test 6");
+		repeat(30)
+			begin	
+			value_ = value_ + 2;				
+			fork
+				begin 
+					push_value(value_,1,20);
+				end
+				begin 
+					pop_value(2,20);
 				end
 			join
 			end
