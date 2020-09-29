@@ -11,7 +11,8 @@ module DUAL_PORT_RAM #(
 	input 				 				write_read_1,   // WRITE OR READ PORT 1
 	output logic [DATA_RAM_WIDTH-1:0] 	data_1,         // DATA PORT 1
 	input 								rst_n,			// RESET
-	input 								clk				// CLK
+	input 								clk,			// CLK
+	input 								full			// fifo is full
 );
 
 	localparam RAM_DEPTH = 1 << ADDR_WIDTH; 				 // RAM depth = 2^addr_width
@@ -49,7 +50,7 @@ module DUAL_PORT_RAM #(
 		if(~rst_n) begin
 			data_1_out <= 0;
 		end else if (chip_enable_1 && !write_read_1) begin
-			data_1_out = memory[address_1];
+			data_1_out <= memory[address_1];
 		end
 	end
 
