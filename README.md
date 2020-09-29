@@ -26,4 +26,4 @@ Implement an interface for connections
 Change pop verification as he sent you   
 The memory module should have been sequentiel and this explains why I had sometimes unwanted writes.   
 I can use 3 states FSM to fix parallel operation, no need for complicated shared ressource.   
-
+Add random constraints to module 2 to not genrate by accident corrupted data   
