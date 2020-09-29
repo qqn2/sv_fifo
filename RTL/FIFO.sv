@@ -13,11 +13,8 @@ module FIFO #(
 );
 
 	logic 		[$clog2(FIFO_DEPTH)-1:0] 	count_write;					// Pointer write updated at posedge for FIFO
-	logic 		[$clog2(FIFO_DEPTH)-1:0] 	next_count_write;				// Pointer write for FIFO
 	logic 		[$clog2(FIFO_DEPTH)-1:0] 	count_read;						// Pointer read updated at posedge for FIFO
-	logic 		[$clog2(FIFO_DEPTH)-1:0] 	next_count_read;				// Pointer read for FIFO
 	logic 		[$clog2(FIFO_DEPTH):0] 		count_fifo;					    // Count of elements updated at posedge for FIFO
-	logic 		[$clog2(FIFO_DEPTH):0] 		next_count_fifo;		        // Count of elements for FIFO
 
 	wire 		[DATA_WIDTH:0]	 			data_ram;    	  		    	// Output data from RAM module
 	logic 					 				pop_request;			    	// High when we have a pop request
@@ -37,15 +34,15 @@ module FIFO #(
 		my_ram
 			(
 				.address_0(count_write),
-				.chip_enable_0(push_request & !clk),
+				.chip_enable_0(push_request),
 				.write_read_0(1'b1), 									// I will always write from the push side
 				.data_0(push_data_i),
 				.address_1(count_read),
 				.chip_enable_1(pop_request),
 				.write_read_1(1'b0),									// I will always read from the pop side
 				.data_1(data_ram),
-				.rst_n(rst_n)
-
+				.rst_n(rst_n),
+				.clk(clk)
 			);
 
 

@@ -19,8 +19,10 @@ Currents Issues :
 It works but parallel push and pop should be handled better, preferably with mutex/sephamore.   
 It's a producer consumer problem, pop and push order matter especially with empty/full cases.   
 When empty : Push must happen before Pop; Whereas when full : Pop must happen before Push.   
-** Suggestions from Igor to be implemented :    
+** Suggestions to be implemented :    
 Have a scoreboard to track ALL activity   
+(implement always block call scoreboard)   
+Implement an interface for connections   
 Change pop verification as he sent you   
 The memory module should have been sequentiel and this explains why I had sometimes unwanted writes.   
 I can use 3 states FSM to fix parallel operation, no need for complicated shared ressource.   
