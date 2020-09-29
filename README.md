@@ -22,3 +22,6 @@ When empty : Push must happen before Pop; Whereas when full : Pop must happen be
 ** Suggestions from Igor to be implemented :    
 Have a scoreboard to track ALL activity   
 Change pop verification as he sent you   
+The memory module should have been sequentiel and this explains why I had sometimes unwanted writes.   
+I can use 3 states FSM to fix parallel operation, no need for complicated shared ressource.   
+
