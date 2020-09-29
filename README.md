@@ -19,15 +19,6 @@ Currents Issues :
 It works but parallel push and pop should be handled better, preferably with mutex/sephamore.   
 It's a producer consumer problem, pop and push order matter especially with empty/full cases.   
 When empty : Push must happen before Pop; Whereas when full : Pop must happen before Push.   
-*** Assertions :   
-Some assertions will flag incorrectly on the testbench included, sampling in not done correctly in cases.
-Maybe use dynamic arrays   
-int dyn[], d2[];  
-initial begin  
-dyn = new[5];  
 ** Suggestions from Igor to be implemented :    
-Temp_memory does not hold enough elements, I shoudl try to use the system verilog queue   
-logic[DATA_WIDTH:0] temp_queue [$];   
 Have a scoreboard to track ALL activity   
-Correct double write in memory   
 Change pop verification as he sent you   

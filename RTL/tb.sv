@@ -17,7 +17,7 @@ module tb #(
 	logic 								pop_grant_i_test; 	// Indicats that fifo can send data
 	wire		 [DATA_WIDTH:0] 		pop_data_o_test; 	// Data output
 	wire 								pop_valid_o_test;	// High if fifo has data to send
-	logic[DATA_WIDTH:0] temp_memory[(100*FIFO_DEPTH):0];	// Temporary array with enough elements for the test
+	logic[DATA_WIDTH:0] temp_memory[$];	// Temporary array with enough elements for the test
 	int i = 0;												// Numbers of elements that we pushed successfully
 	int j = 0;												// Numbers of elements that we popped successfully
 	logic[DATA_WIDTH:0]  value_ = 0;						// Variable I might use to input data
@@ -197,7 +197,7 @@ endtask
 		push_data_i_test=0;
 
 		// Async Clear
-		ASYNC_CLEAR(HALF_T_CLK/2);
+		ASYNC_CLEAR(2*HALF_T_CLK);
 		// TEST 1 : OVERFLOW
 		$display("Starting test 1");
 		push_value(0,FIFO_DEPTH+2,20);
