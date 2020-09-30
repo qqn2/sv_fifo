@@ -21,7 +21,7 @@ module tb #(
     int c = 0;                                              // Numbers of elements that we pushed successfully
     int j = 0;                                              // Numbers of elements that we popped successfully
     logic[DATA_WIDTH:0]  value_ = 0;                        // Variable I might use to input data
-
+    logic done_pushing;                                     // Event I might use when doing parallel forks
 
     top
         #(
@@ -54,7 +54,8 @@ module tb #(
     default clocking cb @(posedge clk_test);
     endclocking 
 
-
+    clocking cb_n @(negedge clk_test);
+    endclocking 
 
 
 
@@ -162,7 +163,6 @@ task automatic good_transmitter(input logic[DATA_WIDTH:0] val, input integer N,i
             begin
                 $display("good_transmitter_CALLED %d",$time);
                 if (grant_o_test) begin
-                        $display("pls execute");
                         valid_i_test = 1;
                         if (val == 0) begin 
                             value_to_be_pushed = $urandom();
@@ -197,13 +197,13 @@ task good_receiver(input integer N,input integer bandwidth);
     begin
         repeat(N)
             begin 
-                @(negedge clk_test)
+                @(cb_n)
                 $display("good_receiver_CALLED  %d",$time);
                 if (valid_o_test) begin
                     grant_i_test = 1;
                     #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) grant_i_test = 0;
                 end else
-                 $display("FIFO NOT READY, NO REQUEST SENT");
+                 $display("FIFO NOT READY, NO REQUEST SENT %d",$time);
             end
     end
 endtask
@@ -304,6 +304,7 @@ endtask
         repeat(30)
             begin
                 value_ = value_ + 3;
+                
                 fork
                     begin
                 good_transmitter(value_,1,20,0);
@@ -315,6 +316,7 @@ endtask
             end
         // TEST 4 :FULL PUSH HALF POP 
         $display("Starting test 4");
+
         repeat(30)
             begin                   
             fork
@@ -364,7 +366,7 @@ endtask
                 if (grant_o_test)
                     if (data_i_test % 2 == 0) begin
                         temp_memory[c] = data_i_test;
-                        $display("Push successfully temp_memory[%d] == %d", c, temp_memory[c]);
+                        $display("Push successfully %d: temp_memory[%d] == %d", $time , c, temp_memory[c]);
                         c++;
                     end else 
                      $display("Pushed corrupted value, Value is [%d]", data_i_test);
