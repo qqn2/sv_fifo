@@ -42,8 +42,7 @@ module FIFO #(
 				.write_read_1(1'b0),									// I will always read from the pop side
 				.data_1(data_ram),
 				.rst_n(rst_n),
-				.clk(clk),
-				.full(!push_grant_o)
+				.clk(clk)
 			);
 
 
