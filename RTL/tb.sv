@@ -18,7 +18,7 @@ module tb #(
     wire         [DATA_WIDTH:0]         data_o_test;        // Data output
     wire                                valid_o_test;       // High if fifo has data to send
     logic[DATA_WIDTH:0] temp_memory[$];                     // Queue array for the test
-    int i = 0;                                              // Numbers of elements that we pushed successfully
+    int c = 0;                                              // Numbers of elements that we pushed successfully
     int j = 0;                                              // Numbers of elements that we popped successfully
     logic[DATA_WIDTH:0]  value_ = 0;                        // Variable I might use to input data
 
@@ -98,7 +98,7 @@ endfunction
 */
 function check_if_overflow();
     begin
-        return ((i - j) > FIFO_DEPTH); //elements_in_fifo = i - j;
+        return ((c - j) > FIFO_DEPTH); //elements_in_fifo = c - j;
     end
 endfunction : check_if_overflow
 
@@ -110,7 +110,7 @@ endfunction : check_if_overflow
 */
 function check_if_underflow();
     begin
-        return (j > i);
+        return (j > c);
     end
 endfunction : check_if_underflow
 
@@ -162,17 +162,18 @@ task automatic good_transmitter(input logic[DATA_WIDTH:0] val, input integer N,i
             begin
                 $display("good_transmitter_CALLED %d",$time);
                 if (grant_o_test) begin
+                        $display("pls execute");
+                        valid_i_test = 1;
                         if (val == 0) begin 
                             value_to_be_pushed = $urandom();
                             if ( ( (value_to_be_pushed % 2 == 1) && !corrupt )     ||  ( !(value_to_be_pushed % 2 == 1) && corrupt )    )
                                 value_to_be_pushed--;
-                        end
+                                    end
                         else         
                             value_to_be_pushed = val;
                         for (int i = 0; i < FIFO_DEPTH; i++) begin
                         $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
                         end
-                        valid_i_test = 1;
                         data_i_test = value_to_be_pushed;
                         #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) valid_i_test = 0;
                         for (int i = 0; i < FIFO_DEPTH; i++) begin
@@ -305,10 +306,10 @@ endtask
                 value_ = value_ + 3;
                 fork
                     begin
-                bad_transmitter(value_,1,25,0);
+                good_transmitter(value_,1,20,0);
                     end
                     begin
-                bad_receiver(1,25);
+                good_receiver(1,20);
                     end
                 join
             end
@@ -318,10 +319,10 @@ endtask
             begin                   
             fork
                 begin 
-                    bad_transmitter(0,1,100,0);
+                    good_transmitter(0,1,100,0);
                 end
                 begin 
-                    bad_receiver(1,20);
+                    good_receiver(1,20);
                 end
             join
             end 
@@ -361,11 +362,12 @@ endtask
         @(posedge valid_i_test)
             @(posedge clk_test)
                 if (grant_o_test)
-                    begin
-                        temp_memory[i] = data_i_test;
-                        $display("Push successfully temp_memory[%d] == %d", i, temp_memory[i]);
-                        i++;
-                    end
+                    if (data_i_test % 2 == 0) begin
+                        temp_memory[c] = data_i_test;
+                        $display("Push successfully temp_memory[%d] == %d", c, temp_memory[c]);
+                        c++;
+                    end else 
+                     $display("Pushed corrupted value, Value is [%d]", data_i_test);
                 else
                     begin   
                     assert(!check_if_overflow())
@@ -379,7 +381,7 @@ endtask
     begin
         @(posedge grant_i_test)
             @(posedge clk_test)
-                if(valid_o_test == 1) begin
+                if(DUT.fifo_i.pop_valid_o == 1) begin
                     @(cb)
                     assert(temp_memory[j] == data_o_test)
                             $display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
