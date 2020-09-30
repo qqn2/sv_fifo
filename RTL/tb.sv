@@ -86,7 +86,7 @@ endfunction
 */
 function Check_if_fifo_is_reset();
     begin
-        return !(DUT.fifo_i.count_read || DUT.fifo_i.count_write || DUT.fifo_i.count_fifo);     
+        return !(DUT.fifo_i.ptr_read || DUT.fifo_i.ptr_write || DUT.fifo_i.flag);     
     end
 endfunction
 

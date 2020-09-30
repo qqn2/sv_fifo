@@ -29,7 +29,7 @@ module DUAL_PORT_RAM #(
 	always_ff @(posedge clk or negedge rst_n) begin : proc_
 		if(~rst_n) begin
 			 	for (int i = 0; i < RAM_DEPTH; i++) begin
-			memory[i]=0;
+			memory[i] <=0;
 				end
 		end else if (chip_enable_0 && write_read_0) begin
 			memory[address_0] <= data_0;
