@@ -13,11 +13,10 @@ module FIFO #(
 );
 
 	logic 		[$clog2(FIFO_DEPTH)-1:0] 	ptr_write;					// Pointer write updated at posedge for FIFO
-	logic 		[$clog2(FIFO_DEPTH)-1:0] 	ptr_read;						// Pointer read updated at posedge for FIFO
-	logic 		[$clog2(FIFO_DEPTH):0] 		count_fifo;					    // Count of elements updated at posedge for FIFO
+	logic 		[$clog2(FIFO_DEPTH)-1:0] 	ptr_read;					// Pointer read updated at posedge for FIFO
 
-	wire 		[DATA_WIDTH:0]	 			data_ram;    	  		    	// Output data from RAM module
-	logic 					 				pop_request;			    	// High when we have a pop request
+	wire 		[DATA_WIDTH:0]	 			data_ram;    	  		    // Output data from RAM module
+	logic 					 				pop_request;			    // High when we have a pop request
 	logic 									push_request;
 	logic 									flag;
 //  ██████╗ ██████╗     ██████╗  █████╗ ███╗   ███╗
@@ -94,18 +93,6 @@ module FIFO #(
 		end else if  (pop_request && !(ptr_read == FIFO_DEPTH - 1) ) begin
 			ptr_read <= ptr_read + 1 ;
 		end
-	end
-
-	always_ff @(posedge clk or negedge rst_n) begin : proc_clk_fifo
-		if(~rst_n) begin
-			count_fifo <= 0;
-		end else if (push_request && pop_request)
-			count_fifo <= count_fifo;
-		else if (push_request && !pop_request) begin
-			count_fifo <= count_fifo + 1;
-		end
-		else if (pop_request && !push_request)
-			count_fifo <= count_fifo - 1;
 	end
 
 	always_ff @(posedge clk or negedge rst_n) begin : proc_flag
