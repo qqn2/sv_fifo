@@ -1,0 +1,15 @@
+#NOTES
+(*) Implement interface, cloking block
+
+
+Verification plan
+
+Async reset at beggining
+Async reset in middle of operation
+Fill the fifo
+Try to overflow the fifo
+Empty the fifo
+Try to underflow the fifo
+Parallel operation : when fifo is empty
+When fifo is half-empty
+When fifo is full

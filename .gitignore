@@ -43,5 +43,5 @@ Thumbs.db
 *.qtl
 transcript
 vsim.wlf
-
+_*
 SIM/work
