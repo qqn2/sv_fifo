@@ -286,7 +286,7 @@ endtask
     always
     begin
         @(posedge push_valid_i_test)
-            @(cb)
+            @(posedge clk_test)
                 if (push_grant_o_test)
                     begin
                         temp_memory[i] = push_data_i_test;
@@ -305,8 +305,9 @@ endtask
     always
     begin
         @(posedge pop_grant_i_test)
-            @(cb)
+            @(posedge clk_test)
                 if(pop_valid_o_test == 1) begin
+                    @(cb)
                     assert(temp_memory[j] == pop_data_o_test)
                             $display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
                         else begin

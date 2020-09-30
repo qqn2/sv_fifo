@@ -1,0 +1,17 @@
+# Current time Wed Sep 30 10:46:35 2020
+# ModelSim - Intel FPGA Edition Stack Trace
+# Program = vish
+# Id = "2020.1"
+# Version = "2020.02"
+# Date = "Feb 28 2020"
+# Platform = "linuxaloem"
+# 0    0x0827880c: 'getBaseType + 0xc' in '/home/ss/intelFPGA/20.1/modelsim_ase/linuxaloem/vish'
+# 1    0x08301c45: '<unknown (@0x8301c45)>'
+# 2    0x08302252: '<unknown (@0x8302252)>'
+# 3    0x08302738: '<unknown (@0x8302738)>'
+# 4    0x0830404f: 'wave_window_restart_prep + 0xdf' in '/home/ss/intelFPGA/20.1/modelsim_ase/linuxaloem/vish'
+# 5    0x082bdf68: '<unknown (@0x82bdf68)>'
+# 6    0x0857e27a: '<unknown (@0x857e27a)>'
+# 7    0xfffffffb: '<unknown (@0xfffffffb)>'
+# End of Stack Trace
+
