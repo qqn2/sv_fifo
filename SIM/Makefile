@@ -9,8 +9,10 @@ build_rtl:
 	vlog -sv ../RTL/top.sv
 
 
-build_tb:
-	vlog -sv ../RTL/tb.sv
+build_full_tb:
+	vlog -sv ../RTL/tb_top.sv
+	vlog -sv ../RTL/test.sv
+	vlog -sv ../RTL/environment.sv
 sim:
 	vsim -voptargs=+acc -L work tb
 sim_with_coverage:

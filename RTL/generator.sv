@@ -1,3 +1,4 @@
+
 class generator;
 
 	rand transaction trans;
@@ -24,7 +25,6 @@ class generator;
 	endtask
 
 
-
-
-
 endclass
+
+

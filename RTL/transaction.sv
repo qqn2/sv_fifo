@@ -1,4 +1,6 @@
-class transaction;
+
+
+class transaction #(int DATA_WIDTH = 8);
 
 // declaring transaction items
 rand bit[DATA_WIDTH:0] push_data_i;
@@ -9,3 +11,5 @@ bit pop_valid_o;
 rand bit pop_grant_i;
 
 endclass : transaction
+
+
