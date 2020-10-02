@@ -17,12 +17,12 @@ module tb #(
     logic                               grant_i_test;       // Indicats that fifo can send data
     wire         [DATA_WIDTH:0]         data_o_test;        // Data output
     wire                                valid_o_test;       // High if fifo has data to send
-    logic[DATA_WIDTH:0] temp_memory[$];                     // Queue array for the test
-    int c = 0;                                              // Numbers of elements that we pushed successfully
-    int j = 0;                                              // Numbers of elements that we popped successfully
-    logic[DATA_WIDTH:0]  value_ = 0;                        // Variable I might use to input data
-    logic done_pushing;                                     // Event I might use when doing parallel forks
-
+    logic        [DATA_WIDTH:0]         temp_memory[$];     // Queue array for the test
+    int                                 push_count = 0;     // Numbers of elements that we pushed successfully
+    int                                 pop_count  = 0;     // Numbers of elements that we popped successfully
+    logic        [DATA_WIDTH:0]         value_ = 0;         // Variable I might use to input data
+    logic        [DATA_WIDTH:0]         buffer;
+    logic        [DATA_WIDTH:0]         buffer2;
     top
         #(
             .DATA_WIDTH(DATA_WIDTH),
@@ -43,19 +43,23 @@ module tb #(
                 .valid_o(valid_o_test)
             );
 
+//   ██████╗██╗      ██████╗  ██████╗██╗  ██╗██╗███╗   ██╗ ██████╗
+//  ██╔════╝██║     ██╔═══██╗██╔════╝██║ ██╔╝██║████╗  ██║██╔════╝
+//  ██║     ██║     ██║   ██║██║     █████╔╝ ██║██╔██╗ ██║██║  ███╗
+//  ██║     ██║     ██║   ██║██║     ██╔═██╗ ██║██║╚██╗██║██║   ██║
+//  ╚██████╗███████╗╚██████╔╝╚██████╗██║  ██╗██║██║ ╚████║╚██████╔╝
+//   ╚═════╝╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝
 
-// CLOCKING
-
-    always 
-    begin
-        #HALF_T_CLK clk_test = ~clk_test;
-    end
+    always
+        begin
+            #HALF_T_CLK clk_test = ~clk_test;
+        end
 
     default clocking cb @(posedge clk_test);
-    endclocking 
+    endclocking
 
-    clocking cb_n @(negedge clk_test);
-    endclocking 
+        clocking cb_n @(negedge clk_test);
+    endclocking
 
 
 
@@ -67,54 +71,85 @@ module tb #(
 //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 
 
-
 /*
-    Returns if parity checker changed pop_valid_o
-    1 : Operation successful
-    0 : Operation unsuccesful
+        Returns if parity checker changed pop_valid_o
+        1 : Operation successful
+        0 : Operation unsuccesful
 */
-function Check_if_parity_check();
-    begin
-        return ( valid_o_test == 0 && DUT.fifo_i.pop_grant_i == 1);
-    end
-endfunction
+        function logic Check_if_parity_check();
+            begin
+                return ( valid_o_test == 0 && DUT.fifo_i.pop_grant_i == 1);
+            end
+        endfunction
 
 /*
 /*
-    Returns if fifo is reset or not 
-    1 : Reset successful
-    0 : Reset unsuccesful
+        Returns if fifo is reset or not
+        1 : Reset successful
+        0 : Reset unsuccesful
 */
-function Check_if_fifo_is_reset();
-    begin
-        return !(DUT.fifo_i.ptr_read || DUT.fifo_i.ptr_write || DUT.fifo_i.flag);     
-    end
-endfunction
+        function logic Check_if_fifo_is_reset();
+            begin
+                return !(DUT.fifo_i.ptr_read || DUT.fifo_i.ptr_write || DUT.fifo_i.flag);
+            end
+        endfunction
 
 /*
-    Returns if fifo was OVERFLOWN by comparing the numbers of successful pushs and pops by the transmitter and receiver tasks
-    NB : Pushing & popping values outside of the tasks will render this function useless
-    1 : Overflow happened
-    0 : Overflow did not happen
+        Returns if fifo was OVERFLOWN by comparing the numbers of successful pushs and pops by the transmitter and receiver tasks
+        NB : Pushing & popping values outside of the tasks will render this function useless
+        1 : Overflow happened
+        0 : Overflow did not happen
 */
-function check_if_overflow();
-    begin
-        return ((c - j) > FIFO_DEPTH); //elements_in_fifo = c - j;
-    end
-endfunction : check_if_overflow
+        function logic check_if_overflow();
+            begin
+                return ((push_count - pop_count) > FIFO_DEPTH); //elements_in_fifo = - j;
+            end
+        endfunction : check_if_overflow
 
 /*
-    Returns if fifo was UNDERFLOWN by comparing the numbers of successful pushs and pops by the transmitter and receiver tasks
-    NB : Pushing & popping values outside of the tasks will render this function useless
-    1 : Underflow happened
-    0 : Underflow did not happen
+        Returns if fifo was UNDERFLOWN by comparing the numbers of successful pushs and pops by the transmitter and receiver tasks
+        1 : Underflow happened
+        0 : Underflow did not happen
 */
-function check_if_underflow();
-    begin
-        return (j > c);
-    end
-endfunction : check_if_underflow
+        function logic check_if_underflow();
+            begin
+                return (pop_count > push_count);
+            end
+        endfunction : check_if_underflow
 
+/* Generates a value to push
+        val : value to be pushed, will be randomized if input = 0
+        corrupt : will corrupt the value if input = 1
+        returns value to be pushed
+*/
+        function automatic logic [DATA_WIDTH:0] transaction(ref logic [DATA_WIDTH:0] val, input logic corrupt = 0);
+            begin
+                logic [DATA_WIDTH:0] value_generated;
+                if (val == 0) begin
+                    value_generated = $urandom();
+                    if ( ( (value_generated % 2 == 1) && !corrupt )     ||  ( !(value_generated % 2 == 1) && corrupt )    )
+                        value_generated--;
+                end else begin
+                value_generated = val;
+                end
+                return value_generated;
+            end
+        endfunction : transaction
+/*
+        Reads memory array content, useful for debugging
+        Void : Does not return a value
+*/
+        function void monitor_memory ();
+            for (int i = 0; i < FIFO_DEPTH; i++) begin
+                $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
+            end
+        endfunction
+/*
+        Reads fifo content
+*/
+        function void monitor_queue ();
+            $display("temp_memory = %p", temp_memory);
+        endfunction
 
 //  ████████╗ █████╗ ███████╗██╗  ██╗███████╗
 //  ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██╔════╝
@@ -125,149 +160,68 @@ endfunction : check_if_underflow
 
 
 /*  Resets the fifo
-    input delay : time of the pulse for rst_n
+        input delay : time of the pulse for rst_n
 
 */
 
-task ASYNC_CLEAR (input integer delay);
-    begin
-        rst_n_test = 0;
-        #delay
-        CHECK_RESET : assert (Check_if_fifo_is_reset())
+        task ASYNC_CLEAR (input integer delay);
             begin
-                $display ("Clear is working at time %d", $time);
-            end else begin
-                $display("Clear not working found at %d,",$time);
+                rst_n_test = 0;
+                #delay
+                    CHECK_RESET : assert (Check_if_fifo_is_reset())
+                        begin
+                            $display ("Clear is working at time %d", $time);
+                        end else begin
+                    $display("Clear not working found at %d,",$time);
+                end
+                rst_n_test = 1;
             end
-        rst_n_test = 1;
-    end
-endtask 
-
-
-
+        endtask
 
 /*  Pushes value inside the fifo if FIFO READY
-    input val : value to be pushed, choose 0 to insert a 32b random value.
-    input N : numbers of repetitions, can range from 1 to max integer value.
-    input bandwith : duty cycle of the push_valid_i signal, can range from 0 to 100
-    input corrupt : Corrupts RANDOM value if high, 
+        input val : value to be pushed, choose 0 to insert a 32b random value.
+        input N : numbers of repetitions, can range from 1 to max integer value.
+        input bandwith : duty cycle of the push_valid_i signal, can range from 0 to 100
+        input corrupt : Corrupts RANDOM value if high,
 
 */
-
-task automatic good_transmitter(input logic[DATA_WIDTH:0] val, input integer N,input integer bandwidth, input logic corrupt); 
-    begin
-        logic [DATA_WIDTH:0] value_to_be_pushed;
-        repeat(N)
-        begin 
-            @(negedge clk_test)
-            begin
-                $display("good_transmitter_CALLED %d",$time);
-                if (grant_o_test) begin
+        task driver(logic [DATA_WIDTH:0] val, input integer N,input integer bandwidth,input logic corrupt = 0);
+            repeat(N)
+                begin
+                    @(cb_n)
+                        $display("Driver Called %d",$time);
+                    if (grant_o_test) begin
                         valid_i_test = 1;
-                        if (val == 0) begin 
-                            value_to_be_pushed = $urandom();
-                            if ( ( (value_to_be_pushed % 2 == 1) && !corrupt )     ||  ( !(value_to_be_pushed % 2 == 1) && corrupt )    )
-                                value_to_be_pushed--;
-                                    end
-                        else         
-                            value_to_be_pushed = val;
-                        for (int i = 0; i < FIFO_DEPTH; i++) begin
-                        $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
-                        end
-                        data_i_test = value_to_be_pushed;
+                        monitor_memory(); // THIS IS ONLY FOR DEBUG, TO BE REMOVED
+                        data_i_test = transaction(val,corrupt);
                         #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) valid_i_test = 0;
-                        for (int i = 0; i < FIFO_DEPTH; i++) begin
-                        $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
-                        end
-                end else 
-                        $display("FIFO NOT READY TO RECEIVE, NO DATA SENT");
-            end
-        end
-    end
-endtask
+                        monitor_memory();
+                    end else
+                    $display("FIFO NOT READY TO RECEIVE, NO DATA SENT");
+                end
+        endtask
 
 /*  Pops value outside the fifo  if FIFO READY
-    input N : numbers of repetitions, can range from 1 to max integer value.
-    input bandwith : duty cycle of the pop_valid_i signal, can range from 1 to 100
+        input N : numbers of repetitions, can range from 1 to max integer value.
+        input bandwith : duty cycle of the pop_valid_i signal, can range from 1 to 100
 
 */
-
-
-task good_receiver(input integer N,input integer bandwidth);
-    begin
-        repeat(N)
-            begin 
-                @(cb_n)
-                $display("good_receiver_CALLED  %d",$time);
-                if (valid_o_test) begin
-                    grant_i_test = 1;
-                    #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) grant_i_test = 0;
-                end else
-                 $display("FIFO NOT READY, NO REQUEST SENT %d",$time);
-            end
-    end
-endtask
-
-
-
-
-
-
-/*  Pushes value inside the fifo without checking if FIFO READY
-    input val : value to be pushed, choose 0 to insert a 32b random value.
-    input N : numbers of repetitions, can range from 1 to max integer value.
-    input bandwith : duty cycle of the push_valid_i signal, can range from 0 to 100
-    input corrupt : Corrupts RANDOM value if high, 
-
-*/
-
-task automatic bad_transmitter(input logic[DATA_WIDTH:0] val, input integer N,input integer bandwidth, input logic corrupt); 
-    begin
-        logic [DATA_WIDTH:0] value_to_be_pushed;
-        repeat(N)
-        begin 
-            @(negedge clk_test)
+        task receiver(input integer N,input integer bandwidth);
             begin
-                $display("bad_transmitter_CALLED %d",$time);
-                if (val == 0) begin 
-                    value_to_be_pushed = $urandom();
-                    if ( ( (value_to_be_pushed % 2 == 1) && !corrupt )     ||  ( !(value_to_be_pushed % 2 == 1) && corrupt )    )
-                        value_to_be_pushed--;
-                end
-                else         
-                    value_to_be_pushed = val;
-                for (int i = 0; i < FIFO_DEPTH; i++) begin
-                $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
-                end
-                valid_i_test = 1;
-                data_i_test = value_to_be_pushed;
-                #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) valid_i_test = 0;
-                for (int i = 0; i < FIFO_DEPTH; i++) begin
-                $display("Helping you with debug process memory[%d]=%d ", i ,DUT.fifo_i.my_ram.memory[i] );
-                end
+                repeat(N)
+                    begin
+                        @(cb_n)
+                            $display("Receiver CALLED  %d",$time);
+                        if (valid_o_test) begin
+                            grant_i_test = 1;
+                            #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) grant_i_test = 0;
+                        end else
+                        $display("FIFO NOT READY, NO REQUEST SENT %d",$time);
+                    end
             end
-        end
-    end
-endtask
-
-/*  Pops value outside the fifo without checking if FIFO READY
-    input N : numbers of repetitions, can range from 1 to max integer value.
-    input bandwith : duty cycle of the pop_valid_i signal, can range from 1 to 100
-
-*/
+        endtask
 
 
-task bad_receiver(input integer N,input integer bandwidth);
-    begin
-        repeat(N)
-            begin 
-                @(negedge clk_test)
-                $display("bad_receiver_CALLED  %d",$time);
-                grant_i_test = 1;
-                #(HALF_T_CLK+(bandwidth*HALF_T_CLK/100)) grant_i_test = 0;
-            end
-    end
-endtask
 
 
 
@@ -280,132 +234,140 @@ endtask
 //     ╚═╝   ╚══════╝╚══════╝   ╚═╝   ╚══════╝
 
 
-    initial begin       
-        clk_test = 1;
-        valid_i_test=0;
-        grant_i_test=0;
-        data_i_test=0;
+        initial begin
+            clk_test = 1;
+            valid_i_test=0;
+            grant_i_test=0;
+            data_i_test=0;
 
-        // Async Clear
-        ASYNC_CLEAR(2*HALF_T_CLK);
-        // TEST 0 : GOOD TRANSMITTER & RECEIVER OVERFLOW/UNDERFLOW
-        $display("Starting test 0");
-        good_transmitter(0,FIFO_DEPTH+2,20, 0);
-        good_receiver(FIFO_DEPTH+2,20);
-        // TEST 1 : OVERFLOW
-        $display("Starting test 1");
-        bad_transmitter(0,FIFO_DEPTH+2,20, 0);
-        // TEST 2 : UNDERFLOW
-        $display("Starting test 2");
-        bad_receiver(FIFO_DEPTH+2,20);
-    
-        $display("Starting test 3"); 
-        // TEST 3 : PARALLEL PUSH POP with corrupt data 50% of the time , Duty cycle of pop & push ==50
-        repeat(30)
-            begin
-                value_ = value_ + 3;
-                
-                fork
-                    begin
-                good_transmitter(value_,1,20,0);
-                    end
-                    begin
-                good_receiver(1,20);
-                    end
-                join
-            end
-        // TEST 4 :FULL PUSH HALF POP 
-        $display("Starting test 4");
+            // Async Clear
+            ASYNC_CLEAR(2*HALF_T_CLK);
 
-        repeat(30)
-            begin                   
-            fork
-                begin 
-                    good_transmitter(0,1,100,0);
+            // TEST 1 : OVERFLOW
+            $display("Starting test 1 :: Overflow");
+            driver(0,FIFO_DEPTH+2,20, 0);
+            // TEST 2 : UNDERFLOW
+            $display("Starting test 2 :: Underflow");
+            receiver(FIFO_DEPTH+2,20);
+            $display("Starting test 3 :: 30 - Parallel push pop :: Corrupt values half of time :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
+            // TEST 3 : PARALLEL PUSH POP with corrupt data 50% of the time , Duty cycle of pop & push ==50
+            repeat(30)
+                begin
+                    value_ = value_ + 3;
+                    fork
+                        begin
+                            driver(value_,1,20,0);
+                        end
+                        begin
+                            receiver(1,20);
+                        end
+                    join
                 end
-                begin 
-                    good_receiver(1,20);
-                end
-            join
-            end 
-        // TEST 5 : 2 PUSH 1 POP
-        $display("Starting test 5");
-        repeat(30)
-            begin   
-            value_ = value_ + 2;                
-            fork
-                begin 
-                    bad_transmitter(value_,2,20,0);
-                end
-                begin 
-                    bad_receiver(1,20);
-                end
-            join
-            end
-        // TEST 6 : 1 PUSH 2 POP
-        $display("Starting test 6");
-        repeat(30)
-            begin   
-            value_ = value_ + 2;                
-            fork
-                begin 
-                    bad_transmitter(value_,1,20,0);
-                end
-                begin 
-                    bad_receiver(2,20);
-                end
-            join
-            end
-    end
+            // TEST 4 :FULL PUSH HALF POP
+            $display("Starting test 4 :: 30 - Parallel push pop :: Duty Cycle of Transmitter = 100 %% Receiver 60 %% ");
 
-    // PUSH VERIFICATION
+            repeat(30)
+                begin
+                    fork
+                        begin
+                            driver(0,1,100,0);
+                        end
+                        begin
+                            receiver(1,20);
+                        end
+                    join
+                end
+            // TEST 5 : 2 PUSH 1 POP
+
+            $display("Starting test 5 :: 30 - 2 Push then 1 pop :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
+            repeat(30)
+                begin
+                    value_ = value_ + 2;
+                    fork
+                        begin
+                            driver(value_,2,20,0);
+                        end
+                        begin
+                            receiver(1,20);
+                        end
+                    join
+                end
+            // TEST 6 : 1 PUSH 2 POP
+            $display("Starting test 6 ::  30 - 2 Pop then 1 push :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
+            repeat(30)
+                begin
+                    value_ = value_ + 2;
+                    fork
+                        begin
+                            driver(value_,1,20,0);
+                        end
+                        begin
+                            receiver(2,20);
+                        end
+                    join
+                end
+        end
+
+//   █████╗ ███████╗███████╗███████╗██████╗ ████████╗██╗ ██████╗ ███╗   ██╗███████╗
+//  ██╔══██╗██╔════╝██╔════╝██╔════╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+//  ███████║███████╗███████╗█████╗  ██████╔╝   ██║   ██║██║   ██║██╔██╗ ██║███████╗
+//  ██╔══██║╚════██║╚════██║██╔══╝  ██╔══██╗   ██║   ██║██║   ██║██║╚██╗██║╚════██║
+//  ██║  ██║███████║███████║███████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║███████║
+//  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+
+
+
+    //PUSH  VERIFICATION
     always
-    begin
-        @(posedge valid_i_test)
-            @(posedge clk_test)
+        begin
+            @(posedge valid_i_test)
+                @(posedge clk_test)
                 if (grant_o_test)
-                    if (data_i_test % 2 == 0) begin
-                        temp_memory[c] = data_i_test;
-                        $display("Push successfully %d: temp_memory[%d] == %d", $time , c, temp_memory[c]);
-                        c++;
-                    end else 
-                     $display("Pushed corrupted value, Value is [%d]", data_i_test);
-                else
-                    begin   
+                if (data_i_test % 2 == 0) begin
+                    temp_memory.push_back(data_i_test);
+                    $display("Push successfully %d: temp_memory[%d] == %d", $time , push_count-pop_count, temp_memory[push_count-pop_count]);
+                    push_count++;
+                end else
+            $display("Pushed corrupted value, thrown away, Value aws [%d]", data_i_test);
+            else
+                begin
                     assert(!check_if_overflow())
                         $display("Good : No overflow occured %d",$time);
                     else
-                        $display("Error underflow at time %d: ", $time);
-                    end
-    end
+                        $display("Error overflow at time %d: ", $time);
+                end
+        end
+
+
     // POP VERIFICATION
     always
-    begin
-        @(posedge grant_i_test)
-            @(posedge clk_test)
-                if(DUT.fifo_i.pop_valid_o == 1) begin
-                    @(cb)
-                    assert(temp_memory[j] == data_o_test)
-                            $display("Pop successful %d: temp_memory[%d] == %d ", $time, j, temp_memory[j]);
-                        else begin
-                            $display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, j, temp_memory[j], data_o_test);
-                            end
-                            j++;
-                    end
-                    else if (valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
-                        assert(Check_if_parity_check())
-                            $display("Good : Corrupt data thrown away %d",$time);
-                        else
-                            $display("Error : Corrupt data not handled %d", $time);
-                        j++;
-                    end
-                    else begin
-                        assert(!check_if_underflow())
-                            $display("Good : No underflow occured %d",$time);
-                        else
-                            $display("Error at time %d : underflow", $time);
-                    end
-    end
+        begin
+            @(posedge grant_i_test)
+                @(posedge clk_test)
+                buffer2 = data_o_test;
+            if(DUT.fifo_i.pop_valid_o == 1) begin
+                @(cb);
+                buffer = temp_memory.pop_front();
+                assert(buffer == data_o_test || buffer == buffer2)
+                    $display("Pop successful %d: temp_memory[%d] == %d ", $time, (push_count-pop_count), buffer);
+                else begin
+                    $display("Error at time %d: temp_memory[%d] == %d whereas pop_data_o == %d", $time, (push_count-pop_count), buffer, data_o_test);
+                end
+                pop_count++;
+            end
+            else if (valid_o_test == ~DUT.fifo_i.pop_valid_o) begin
+                assert(Check_if_parity_check())
+                    $display("Good : Corrupt data thrown away %d",$time);
+                else
+                    $display("Error : Corrupt data not handled %d", $time);
+            end
+            else begin
+                assert(!check_if_underflow())
+                    $display("Good : No underflow occured %d",$time);
+                else
+                    $display("Error at time %d : underflow", $time);
+            end
+        end
 
 
 

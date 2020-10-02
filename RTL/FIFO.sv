@@ -99,7 +99,7 @@ module FIFO #(
 			flag <= 0;
 		end else if ((push_request &&  (ptr_write == FIFO_DEPTH - 1 ))) begin
 			flag <= 1;
-		end else if (pop_request && !(ptr_read == FIFO_DEPTH - 1)) begin 
+		end else if (pop_request &&    (ptr_read == FIFO_DEPTH - 1)) begin 
 			flag <= 0;
 		end
 	end

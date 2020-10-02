@@ -16,8 +16,6 @@ module DUAL_PORT_RAM #(
 
 	localparam RAM_DEPTH = 1 << ADDR_WIDTH; 				 // RAM depth = 2^addr_width
 	logic      [DATA_RAM_WIDTH-1:0] 	memory[RAM_DEPTH-1:0];
-	logic 	   [DATA_RAM_WIDTH-1:0] 			   data_1_out;
-
 
 //  ███╗   ███╗███████╗███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗    ██╗    ██╗██████╗ ██╗████████╗███████╗
 //  ████╗ ████║██╔════╝████╗ ████║██╔═══██╗██╔══██╗╚██╗ ██╔╝    ██║    ██║██╔══██╗██║╚══██╔══╝██╔════╝
@@ -45,18 +43,12 @@ module DUAL_PORT_RAM #(
 //  ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝       ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝
 
 
-	always_ff @(posedge clk or negedge rst_n or address_0) begin 
+	always_comb begin 
 		if(~rst_n) begin
-			data_1_out <= 0;
+			data_1 = 0;
 		end else if (chip_enable_1 && !write_read_1) begin
-			data_1_out <= memory[address_1];
+			data_1 = memory[address_1];
 		end
-	end
-
-
-	always_comb
-	begin
-		data_1 = data_1_out;
 	end
 
 
