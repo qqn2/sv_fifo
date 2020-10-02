@@ -282,10 +282,9 @@ module tb #(
             $display("Starting test 5 :: 30 - 2 Push then 1 pop :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
             repeat(30)
                 begin
-                    value_ = value_ + 2;
                     fork
                         begin
-                            driver(value_,2,20,0);
+                            driver(0,2,20,0);
                         end
                         begin
                             receiver(1,20);
@@ -296,10 +295,9 @@ module tb #(
             $display("Starting test 6 ::  30 - 2 Pop then 1 push :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
             repeat(30)
                 begin
-                    value_ = value_ + 2;
-                    fork
+                     fork
                         begin
-                            driver(value_,1,20,0);
+                            driver(0,1,20,0);
                         end
                         begin
                             receiver(2,20);
