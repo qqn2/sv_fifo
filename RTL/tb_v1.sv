@@ -130,7 +130,7 @@ module tb #(
                     if ( ( (value_generated % 2 == 1) && !corrupt )     ||  ( !(value_generated % 2 == 1) && corrupt )    )
                         value_generated--;
                 end else begin
-                value_generated = val;
+                    value_generated = val;
                 end
                 return value_generated;
             end
@@ -295,7 +295,7 @@ module tb #(
             $display("Starting test 6 ::  30 - 2 Pop then 1 push :: Duty Cycle of Transmitter = 60 %% Receiver 60 %% ");
             repeat(30)
                 begin
-                     fork
+                    fork
                         begin
                             driver(0,1,20,0);
                         end
